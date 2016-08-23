@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Account</title>
+	<meta charset="utf-8" />
+    
+</head>
+<body>
+    <h2>My Account</h2>
+    <div>
+        <form>
+            <p>Type resume here</p>
+            <textarea name="resume"cols="100"rows="25" ></textarea><br /><br />
+            <input type="button" value="Upload Resume" onclick="SubmitResume()" />
+            <input type="button" value="View Resumes" onclick="ViewResume()" />
+            <input type="button" value="View Comments" onclick="ViewComment()" />
+        </form>
+    </div>
+    <div>
+        <p id="demo"></p>
+        <p id="demo2"></p>
+    </div>
+    <script src="Cookies.js"></script>
+    <script>
+        function ViewComment() {
+            var cookie = GetCookie();
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (xhttp.readyState == 4 && xhttp.status == 302)
+                {
+                    var arr = JSON.parse(xhttp.responseText);
+                    var str="";
+                    for (var i = 0; i < arr.length; ++i) {                                        
+                        var text = "Upload Time: " + arr[i]["UploadTime"] + "<br/>" + "Comment: <br/>" + arr[i]["Content"]+"<br/><br/>";
+                        var str = document.getElementById("demo2").innerHTML;
+                        document.getElementById("demo2").innerHTML = str + text;                                                          
+                    }                    
+                }
+            };
+            var tmp = cookie.id.replace("\"", "");
+            var Id = tmp.replace("\"", "");
+            var url = "http://localhost:60884/api/Comments/" + Id;
+            xhttp.open("GET", url, true);
+            xhttp.setRequestHeader("Content-Type", "application/JSON;charset=utf-8");
+            var cookie = GetCookie();
+            if (cookie == "") {
+                document.getElementById("demo").innerHTML = "load cookie failed";
+                return;
+            }
+            var usernameandpsw = cookie.username + ":" + cookie.psw;
+            var encoded = window.btoa(usernameandpsw);
+            xhttp.setRequestHeader("WWW-Authenticate", "Basic " + encoded); 
+            xhttp.send();
+        }
+
+        function SubmitResume() {          
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (xhttp.readyState == 4 && xhttp.status == 200)
+                    alert("Upload Success");
+            };
+            xhttp.open("PUT", "http://localhost:60884/api/Resumes", true);
+            xhttp.setRequestHeader("Content-Type", "application/JSON;charset=utf-8");
+            var cookie = GetCookie();
+            if (cookie == "") {
+                document.getElementById("demo").innerHTML = "load cookie failed";
+                return;
+            }
+            var usernameandpsw = cookie.username + ":" + cookie.psw;
+            var encoded = window.btoa(usernameandpsw );
+            xhttp.setRequestHeader("WWW-Authenticate", "Basic " + encoded);
+            var Content = document.getElementsByName("resume")[0].value;
+            if (Content == null) {
+                return;
+            }
+            var d = new Date();
+            d.setTime(d.getTime());
+            var resume = new Resume(cookie.id.toString(), d.toUTCString(), Content);
+            xhttp.send(JSON.stringify(resume));
+        }
+        
+        function ViewResume() {
+            window.open("http://localhost:60884/ResumeViewer.html");
+        }
+
+        function Account(id, accountname) {
+            this.Id = id;
+            this.AccountName = accountname;
+        }
+                 
+        function Resume(Id,UploadTime,Content)
+        {
+            this.Id = Id;
+            this.UploadTime = UploadTime;
+            this.Content = Content;
+        }        
+    </script>
+</body>
+</html>

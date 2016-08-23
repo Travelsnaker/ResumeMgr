@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Resume Viewer</title>
+	<meta charset="utf-8" />
+</head>
+<body onload="ViewResume()">
+    <h2>Resume Viewer</h2>
+    <div>
+        <p id="demo"></p>
+    </div>
+    <script src="Cookies.js"></script>
+    <script>
+        function ViewResume() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (xhttp.readyState == 4 && xhttp.status == 302) {
+                    var arr = JSON.parse(xhttp.responseText);
+                    var str = "";
+                    for (var i = 0; i < arr.length; ++i) {
+                        var tmp = "<a href onclick='getResume(ID)'>" + arr[i]["AccountName"] + "</a>" + "<br/>";
+                        var text = tmp.replace("ID", "\"" + arr[i]["Id"] + "\"");
+                        var str = document.getElementById("demo").innerHTML;
+                        document.getElementById("demo").innerHTML = str + text;
+                        var elem = document.getElementById(arr[i]["Id"]);
+                    }
+                }
+            };
+            xhttp.open("GET", "http://localhost:60884/api/Resumes", true);
+            xhttp.setRequestHeader("Content-Type", "application/JSON;charset=utf-8");
+            var cookie = GetCookie();
+            if (cookie == "") {
+                document.getElementById("demo").innerHTML = "load cookie failed";
+                return;
+            }
+            var usernameandpsw = cookie.username + ":" + cookie.psw;
+            var encoded = window.btoa(usernameandpsw);
+            xhttp.setRequestHeader("WWW-Authenticate", "Basic " + encoded);
+            xhttp.send();
+        }
+        function getResume(id) {
+            window.open("http://localhost:60884/Resumes.html");
+            document.cookie = "id=" + id;
+
+        }
+    </script>
+</body>
+</html>
